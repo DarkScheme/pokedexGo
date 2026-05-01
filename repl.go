@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"bufio"
 	"os"
-	"io"
-	"log"
-	"net/http"
-	"encoding/json"
+	// "io"
+	// "log"
+	// "net/http"
+	// "encoding/json"
 	"github.com/DarkScheme/pokedexGo/internal/pokeapi"
+	"errors"
 
 )
 
@@ -21,8 +22,8 @@ type cliCommand struct {
 
 type configStruct struct {
 	pokeapiClient pokeapi.Client
-	Next string
-	Previous string
+	Next *string
+	Previous *string
 }
 
 type locationAreasResp struct {
@@ -68,8 +69,6 @@ func startRepl(c *configStruct) {
 	// creates a buffer scanner
 	scanner := bufio.NewScanner(os.Stdin)
 
-	cfg := &configStruct{}
-
 	// infinite loop
 	for {
 		fmt.Print("Pokedex > ")
@@ -83,7 +82,7 @@ func startRepl(c *configStruct) {
 
 		value, ok := getCommands()[cleaned[0]]
 		if ok {
-			err := value.callback(cfg)
+			err := value.callback(c)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -115,83 +114,115 @@ func commandHelp(c *configStruct) error {
 	return nil
 }
 
-func commandMap(c *configStruct) error {
-	// this is the get request
-	url := "https://pokeapi.co/api/v2/location-area/"
-	if c.Next != "" {
-		url = c.Next
-	} 
-	res, err := http.Get(url)
-	
+func commandMap(cfg *configStruct) error {
+	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.Next)
 	if err != nil {
-		log.Fatal(err)
-	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil{
-		log.Fatal(err)
-	}
-	// fmt.Printf("%s", body)
-
-	// and this is the Unmarshal JSON to struct
-
-	area := locationAreasResp{}
-	err = json.Unmarshal(body, &area)
-	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
-	c.Next = area.Next
-	c.Previous = area.Previous
+	cfg.Next = locationsResp.Next
+	cfg.Previous = locationsResp.Previous
 
-	for _, a := range area.Results {
-		fmt.Println(a.Name)
+	for _, loc := range locationsResp.Results {
+		fmt.Println(loc.Name)
 	}
-	
 	return nil
+	// // *the below is old code, keeping for now just in case*
+	// // // this is the get request
+	// url := "https://pokeapi.co/api/v2/location-area/"
+	// if c.Next != "" {
+	// 	url = c.Next
+	// } 
+	// res, err := http.Get(url)
+	
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// body, err := io.ReadAll(res.Body)
+	// res.Body.Close()
+	// if res.StatusCode > 299 {
+	// 	log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	// }
+	// if err != nil{
+	// 	log.Fatal(err)
+	// }
+	// // // fmt.Printf("%s", body)
+
+	// // // and this is the Unmarshal JSON to struct
+
+	// area := locationAreasResp{}
+	// err = json.Unmarshal(body, &area)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	// c.Next = area.Next
+	// c.Previous = area.Previous
+
+	// for _, a := range area.Results {
+	// 	fmt.Println(a.Name)
+	// }
+	
+	// return nil
 }
 
-func commandMapb(c *configStruct) error {
-	// this is the get request
-	url := "https://pokeapi.co/api/v2/location-area/"
-	if c.Previous != "" {
-		url = c.Previous
-	} 
-	res, err := http.Get(url)
-	
+func commandMapb(cfg *configStruct) error {
+
+	if cfg.Previous == nil {
+		return errors.New("you're on the first page")
+	}
+
+	locationResp, err := cfg.pokeapiClient.ListLocations(cfg.Previous)
 	if err != nil {
-		log.Fatal(err)
-	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil{
-		log.Fatal(err)
-	}
-	// fmt.Printf("%s", body)
-
-	// and this is the Unmarshal JSON to struct
-
-	area := locationAreasResp{}
-	err = json.Unmarshal(body, &area)
-	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
-	c.Next = area.Next
-	c.Previous = area.Previous
+	cfg.Next = locationResp.Next
+	cfg.Previous = locationResp.Previous
 
-	for _, a := range area.Results {
-		fmt.Println(a.Name)
+	for _, loc := range locationResp.Results {
+		fmt.Println(loc.Name)
 	}
-	
 	return nil
 }
+	// // *the below is old code, keeping for now just in case*
+	// // this is the get request 
+	// url := "https://pokeapi.co/api/v2/location-area/"
+	// if c.Previous != "" {
+	// 	url = c.Previous
+	// } 
+	// res, err := http.Get(url)
+	
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// body, err := io.ReadAll(res.Body)
+	// res.Body.Close()
+	// if res.StatusCode > 299 {
+	// 	log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	// }
+	// if err != nil{
+	// 	log.Fatal(err)
+	// }
+	// // fmt.Printf("%s", body)
+
+	// // and this is the Unmarshal JSON to struct
+
+	// area := locationAreasResp{}
+	// err = json.Unmarshal(body, &area)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	// c.Next = area.Next
+	// c.Previous = area.Previous
+
+	// for _, a := range area.Results {
+	// 	fmt.Println(a.Name)
+	// }
+	
+	// return nil
+
 
 
 
