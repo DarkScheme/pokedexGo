@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"encoding/json"
+	"github.com/DarkScheme/pokedexGo/internal/pokeapi"
+
 )
 
 type cliCommand struct {
@@ -18,6 +20,7 @@ type cliCommand struct {
 }
 
 type configStruct struct {
+	pokeapiClient pokeapi.Client
 	Next string
 	Previous string
 }
@@ -60,7 +63,7 @@ func getCommands() map[string]cliCommand {
 }
 
 
-func startRepl() {
+func startRepl(c *configStruct) {
 
 	// creates a buffer scanner
 	scanner := bufio.NewScanner(os.Stdin)

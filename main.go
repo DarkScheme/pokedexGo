@@ -1,7 +1,18 @@
 package main
 
+import (
+	"time"
+	"github.com/DarkScheme/pokedexGo/internal/pokeapi"
+)
+
 
 func main() {
-	startRepl()
+
+	pokeClient := pokeapi.NewClient(5 * time.Second)
+	cfg := &configStruct{
+		pokeapiClient: pokeClient,
+	}
+
+	startRepl(cfg)
 }
 
