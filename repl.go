@@ -17,7 +17,7 @@ import (
 type cliCommand struct {
 	name string
 	description string
-	callback func(*configStruct) error
+	callback func(*configStruct, []string) error
 }
 
 type configStruct struct {
@@ -59,6 +59,11 @@ func getCommands() map[string]cliCommand {
 						description: "Displays the previous 20 locations",
 						callback: commandMapb,
 					},
+					"explore": {
+						name: "explore",
+						description: "explores a given are. E.g. explore canalave-city-area",
+						callback: commandExplore,
+					},
 				}
 	return newMap
 }
@@ -82,7 +87,7 @@ func startRepl(c *configStruct) {
 
 		value, ok := getCommands()[cleaned[0]]
 		if ok {
-			err := value.callback(c)
+			err := value.callback(c, cleaned[1:])
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -97,14 +102,22 @@ func startRepl(c *configStruct) {
 	}
 }
 
+// the clean Input function
+func cleanInput(text string) []string {
+	words := strings.Fields(strings.ToLower(text))
+	return words
+
+
+}
+
 // commands here:
-func commandExit(c *configStruct) error {
+func commandExit(c *configStruct, args []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(c *configStruct) error {
+func commandHelp(c *configStruct, args []string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println("")
@@ -114,7 +127,7 @@ func commandHelp(c *configStruct) error {
 	return nil
 }
 
-func commandMap(cfg *configStruct) error {
+func commandMap(cfg *configStruct, args []string) error {
 	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.Next)
 	if err != nil {
 		return err
@@ -166,7 +179,7 @@ func commandMap(cfg *configStruct) error {
 	// return nil
 }
 
-func commandMapb(cfg *configStruct) error {
+func commandMapb(cfg *configStruct, args []string) error {
 
 	if cfg.Previous == nil {
 		return errors.New("you're on the first page")
@@ -226,13 +239,32 @@ func commandMapb(cfg *configStruct) error {
 
 
 
-// the clean Input function
-func cleanInput(text string) []string {
-	words := strings.Fields(strings.ToLower(text))
-	return words
 
 
+
+// explore command
+func commandExplore(cfg *configStruct, args []string) error {
+
+	if len(args) <= 0 {
+		return errors.New("for this command you must also specify the area name")
+	}
+	areaName := args[0]
+
+	locationsArea, err := cfg.pokeapiClient.GetLocationArea(areaName)
+	if err != nil {
+		return err
+	}
+
+	message := "Exploring " + areaName + "..."
+	fmt.Println(message)
+	fmt.Println("Found Pokemon:")
+
+	for _, pok := range locationsArea.PokemonEncounters {
+		pokis := "- " + pok.Pokemon.Name
+		fmt.Println(pokis)
+	}
+	return nil
+
+	
 }
-
-
 
