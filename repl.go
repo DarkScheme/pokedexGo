@@ -71,6 +71,11 @@ func getCommands() map[string]cliCommand {
 						description: "catches the pokemon (duh.). Need to write the pokemon name, e.g.: catch pikachu",
 						callback: commandCatch,
 					},
+					"inspect": {
+						name: "inspect",
+						description: "inspects the pokemon. Only works for already caught Pokemon, e.g.: inspect pikachu",
+						callback: commandInspect,
+					},
 				}
 	return newMap
 }
@@ -83,6 +88,7 @@ func startRepl(c *configStruct) {
 
 	// infinite loop
 	for {
+		fmt.Println(" ")
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		input := scanner.Text()
@@ -303,5 +309,41 @@ func commandCatch(cfg *configStruct, args []string) error {
 
 	return nil
 }
+
+// inspect command
+func commandInspect(cfg *configStruct, args []string) error {
+
+	if len(args) <= 0 {
+		return errors.New("for this command you must also specify the pokemon name")
+	}
+
+	pokName := args[0]
+
+	poki, ok := cfg.caughtPokemon[pokName]
+	if !ok {
+		fmt.Println("Inspection not possible, you have not caught this Pokemon")
+		return nil
+	}
+	
+	fmt.Printf("Height: %d\n", poki.Height)
+	fmt.Printf("Weight: %d\n", poki.Weight)
+	fmt.Printf("BaseExperience: %d\n", poki.BaseExperience)
+	fmt.Println("Stats:")
+	for _, s := range poki.Stats {
+		fmt.Printf("- %s: %d\n", s.Stat.Name, s.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range poki.Types {
+		fmt.Printf("- %s\n", t.Type.Name)
+	}
+	
+
+
+	return nil
+
+
+}
+
+
 
 
