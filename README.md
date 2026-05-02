@@ -2,11 +2,16 @@
 
 ## About
 
-this is a pokedex in CLI project
+this is a Pokedex in CLI project
 
-**WORK IN PROGRESS**
+You have the following Options:
+- run through the world (by showing possible areas to explore)
+- explore areas (this will show potential Pokemon to catch)
+- catch a Pokemon (they also may escape)
+- inspect Pokemons (only ones you have caught)
+- show your Pokedex of already caught Pokemon
 
-_please come back later ;)_
+Use the "help" command to show possible Commands
 
 
-
+More features may be implemented in the future...

@@ -76,6 +76,11 @@ func getCommands() map[string]cliCommand {
 						description: "inspects the pokemon. Only works for already caught Pokemon, e.g.: inspect pikachu",
 						callback: commandInspect,
 					},
+					"pokedex": {
+						name: "pokedex",
+						description: "shows your Pokedex (all Pokemon that you have caught so far)",
+						callback: commandPokedex,
+					},
 				}
 	return newMap
 }
@@ -297,7 +302,7 @@ func commandCatch(cfg *configStruct, args []string) error {
 		return err
 	}
 
-	getBelow := 100
+	getBelow := 75
 	roll := rand.Intn(poke.BaseExperience)
 	if roll < getBelow {
 		cfg.caughtPokemon[poke.Name] = poke
@@ -345,5 +350,11 @@ func commandInspect(cfg *configStruct, args []string) error {
 }
 
 
-
+func commandPokedex(cfg *configStruct, args []string) error {
+	fmt.Println("Your Pokedex:")
+	for key, _ := range cfg.caughtPokemon {
+		fmt.Printf("- %s\n", key)
+	}
+	return nil
+}
 
