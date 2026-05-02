@@ -11,6 +11,7 @@ import (
 	// "encoding/json"
 	"github.com/DarkScheme/pokedexGo/internal/pokeapi"
 	"errors"
+	"math/rand"
 
 )
 
@@ -24,6 +25,7 @@ type configStruct struct {
 	pokeapiClient pokeapi.Client
 	Next *string
 	Previous *string
+	caughtPokemon map[string]pokeapi.Pokemon
 }
 
 type locationAreasResp struct {
@@ -63,6 +65,11 @@ func getCommands() map[string]cliCommand {
 						name: "explore",
 						description: "explores a given are. E.g. explore canalave-city-area",
 						callback: commandExplore,
+					},
+					"catch": {
+						name: "catch",
+						description: "catches the pokemon (duh.). Need to write the pokemon name, e.g.: catch pikachu",
+						callback: commandCatch,
 					},
 				}
 	return newMap
@@ -267,4 +274,34 @@ func commandExplore(cfg *configStruct, args []string) error {
 
 	
 }
+
+
+// catch command
+func commandCatch(cfg *configStruct, args []string) error {
+
+	if len(args) <= 0 {
+		return errors.New("for this command you must also specify the pokemon name")
+	}
+
+	catchphrase := "Throwing a Pokeball at " + args[0] + "..."
+	fmt.Println(catchphrase)
+
+	poke, err := cfg.pokeapiClient.GetPokemon(args[0])
+	if err != nil {
+		return err
+	}
+
+	getBelow := 100
+	roll := rand.Intn(poke.BaseExperience)
+	if roll < getBelow {
+		cfg.caughtPokemon[poke.Name] = poke
+		fmt.Printf("%s was caught!\n", poke.Name)
+	} else {
+		fmt.Printf("%s escaped!\n", poke.Name)
+	}
+
+
+	return nil
+}
+
 
